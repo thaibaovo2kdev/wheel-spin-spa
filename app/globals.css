@@ -77,6 +77,8 @@
 @theme inline {
   --font-sans: 'Geist', 'Geist Fallback';
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-clash: 'Clash Display', var(--font-sans);
+  --font-branch: 'Branch', 'Playfair Display', serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import LuckyWheel from '@/components/lucky-wheel';
 import WinnerForm from '@/components/winner-form';
 import Fireworks from '@/components/fireworks';
-import PrizesList from '@/components/prizes-list'; // Import PrizesList component
+import Image from 'next/image'
 
 interface Prize {
   id: string;
@@ -124,129 +124,194 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-yellow-50 to-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4" />
-          <p className="text-black font-semibold">Loading Lucky Wheel...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-[#F9FAFC]">
+        <p className="text-black text-[16px]" style={{ fontFamily: 'var(--font-clash)' }}>
+          Loading Lucky Wheel...
+        </p>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-yellow-50 to-white">
-      {/* Header */}
-      <section className="bg-black text-yellow-400 py-8 border-b-4 border-yellow-400">
-        <div className="max-w-6xl mx-auto px-6 text-center">
-          <p className="text-sm font-semibold mb-2 tracking-wider">
-            ✨ NAIL SALON & SPA ✨
+    <main className="min-h-screen bg-[#F9FAFC] relative overflow-hidden">
+      {/* Background pattern */}
+      <div className="pointer-events-none absolute inset-0 opacity-10">
+        <Image
+          src="/figma/bg-pattern.png"
+          alt=""
+          fill
+          priority
+          className="object-cover"
+        />
+      </div>
+
+      {/* Header (Figma node 1:12) */}
+      <header className="relative h-[270px] bg-black border-b-[6px] border-[#F8DC65] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-[16px] text-center">
+          <Image
+            src="/figma/logo.png"
+            alt="Beautique"
+            width={120}
+            height={58}
+            className="h-[58px] w-[120px]"
+            priority
+          />
+          <div className="space-y-0">
+            <h1
+              className="text-[#F8DC65] text-[60px] leading-[1.5]"
+              style={{ fontFamily: 'var(--font-branch)' }}
+            >
+              LUCKY WHEEL
+            </h1>
+            <p
+              className="text-white text-[20px] leading-[1.5]"
+              style={{ fontFamily: 'var(--font-clash)' }}
+            >
+              Try your luck and win amazing discounts!
+            </p>
+          </div>
+        </div>
+      </header>
+
+      {/* Main */}
+      <section className="relative flex flex-col items-center">
+        <div className="mt-[53px] flex flex-col items-center gap-[16px] w-full max-w-[564px] px-6">
+          <Image
+            src="/figma/snowflake.svg"
+            alt=""
+            width={48}
+            height={48}
+            className="h-[48px] w-[48px]"
+          />
+          <p
+            className="text-[#BA1640] text-[20px] leading-[1.5] text-center"
+            style={{ fontFamily: 'var(--font-clash)' }}
+          >
+            Click the button below to spin the wheel and win your prize
           </p>
-          <h1 className="text-4xl md:text-5xl font-bold mb-2">
-            LUCKY WHEEL
-          </h1>
-          <p className="text-yellow-300 text-lg">
-            Try your luck and win amazing discounts!
-          </p>
+        </div>
+
+        <div className="mt-[55px] px-6">
+          <LuckyWheel
+            prizes={prizes}
+            onSpinComplete={handleSpinComplete}
+            disabled={showForm || !!selectedPrize}
+          />
         </div>
       </section>
 
-      {/* Main Content */}
-      <section className="max-w-6xl mx-auto px-6 py-12">
-            <div className="flex flex-col items-center gap-8 relative z-10">
-              <div className="bg-white border-4 border-black rounded-2xl p-8 shadow-2xl">
-                <p className="text-center text-black font-semibold mb-6 text-lg">
-                  Click the button below to spin the wheel and win your prize!
-                </p>
-                <LuckyWheel
-                  prizes={prizes}
-                  onSpinComplete={handleSpinComplete}
-                  disabled={showForm || !!selectedPrize}
-                />
-              </div>
-
-              <div className="text-center text-black/60 text-sm max-w-md">
-                <p>
-                  Spin once per customer • All winners receive a discount code • Valid for 30 days
-                </p>
-              </div>
-
-              {/* Win Popup Overlay */}
-              {selectedPrize && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                  {/* Backdrop */}
-                  <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" />
-                  
-                  {/* Fireworks Layer */}
-                  <div className="absolute inset-0 pointer-events-none z-10">
-                    <Fireworks />
-                  </div>
-
-                  {/* Content */}
-                  <div className="relative z-20 w-full max-w-2xl bg-gradient-to-b from-yellow-100 to-yellow-50 border-4 border-black rounded-3xl p-8 md:p-12 shadow-2xl text-center animate-in zoom-in-50 duration-500">
-                    {showForm ? (
-                       <WinnerForm
-                          prize={selectedPrize}
-                          onSubmit={handleFormSubmit}
-                          loading={submitting}
-                       />
-                    ) : (
-                      <>
-                        <h2 className="text-5xl font-bold text-black mb-4">🎉</h2>
-                        <h2 className="text-4xl font-bold text-black mb-2">
-                          Congratulations!
-                        </h2>
-                        <p className="text-xl text-black mb-8">
-                          You won <span className="font-bold text-3xl text-red-600">{selectedPrize.discount}</span>
-                        </p>
-
-                        {/* Discount Code Display */}
-                        <div className="bg-white border-4 border-black rounded-2xl p-8 mb-8 shadow-lg">
-                          <p className="text-sm text-black/60 mb-2 font-semibold">
-                            YOUR DISCOUNT CODE
-                          </p>
-                          <p className="font-mono text-4xl font-bold text-black mb-2 break-all">
-                            NAILS{selectedPrize.percentage}OFF
-                          </p>
-                          <p className="text-xs text-black/50">
-                            Valid for 30 days on all services
-                          </p>
-                        </div>
-
-                        <div className="flex flex-col gap-3">
-                            <button
-                              onClick={handleClaimReward}
-                              className="w-full px-8 py-4 bg-gradient-to-b from-black to-black/90 hover:from-black/90 hover:to-black text-yellow-400 font-bold text-lg rounded-xl transition transform hover:scale-105 active:scale-95 shadow-lg"
-                            >
-                              Claim Reward - Enter Your Details
-                            </button>
-
-                            <button
-                              onClick={() => {
-                                setSelectedPrize(null);
-                                setShowForm(false);
-                                window.location.reload();
-                              }}
-                              className="w-full px-8 py-2 bg-white border-2 border-black text-black font-bold rounded-xl hover:bg-yellow-50 transition"
-                            >
-                              Close & Try Again
-                            </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-black text-yellow-400 py-8 border-t-4 border-yellow-400">
-        <div className="max-w-6xl mx-auto px-6 text-center">
-          <p className="text-sm">
-            © 2025 Nail Salon & Spa Lucky Wheel • All rights reserved
-          </p>
-        </div>
+      {/* Footer (Figma node 1:12) */}
+      <footer className="relative mt-[80px] h-[100px] bg-black border-t-[2px] border-[#F8DC65] flex items-center justify-center">
+        <p
+          className="text-[#F8DC65] text-[16px] leading-[1.5] text-center px-6"
+          style={{ fontFamily: 'var(--font-clash)' }}
+        >
+          © 2025 Nail Salon & Spa Lucky Wheel • All rights reserved
+        </p>
       </footer>
+
+      {/* Popup overlay (Figma node 1:107 / 1:134) */}
+      {selectedPrize && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0 pointer-events-none">
+            <Fireworks />
+          </div>
+
+          {!showForm ? (
+            <div
+              className="relative z-10 w-full max-w-[736px] h-[550px] rounded-[24px] overflow-hidden"
+              style={{ fontFamily: 'var(--font-clash)' }}
+            >
+              <div className="absolute inset-0 bg-[#BA1640]" />
+              <Image
+                src="/figma/congrats-bg.png"
+                alt=""
+                fill
+                className="object-cover"
+                priority
+              />
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedPrize(null)
+                  setShowForm(false)
+                }}
+                className="absolute right-0 top-0 p-[24px]"
+                aria-label="Close"
+              >
+                <Image
+                  src="/figma/close.svg"
+                  alt=""
+                  width={24}
+                  height={24}
+                  className="h-[24px] w-[24px]"
+                />
+              </button>
+
+              <div className="absolute left-1/2 top-[32px] -translate-x-1/2 w-[404px] flex flex-col items-center gap-[48px]">
+                <Image
+                  src="/figma/logo-black.png"
+                  alt="Beautique"
+                  width={200}
+                  height={97}
+                  className="h-[97px] w-[200px]"
+                  priority
+                />
+
+                <div className="w-full flex flex-col items-center gap-[32px]">
+                  <div className="w-[325px] flex flex-col items-center gap-[24px]">
+                    <div className="text-center text-[#BA1640] space-y-2">
+                      <p
+                        className="text-[48px] leading-[1.2]"
+                        style={{ fontFamily: 'var(--font-branch)' }}
+                      >
+                        Congratulations!
+                      </p>
+                      <p className="text-[32px] leading-[1.2] text-black">
+                        You won{' '}
+                        <span className="text-[#BA1640] font-medium">
+                          {selectedPrize.discount}
+                        </span>
+                      </p>
+                    </div>
+
+                    <div className="w-[286px] h-[114px] rounded-[16px] border border-black px-[48px] py-[16px] flex flex-col items-center justify-center gap-[10px]">
+                      <p className="text-[16px] leading-[1.5] text-black">
+                        YOUR DISCOUNT CODE
+                      </p>
+                      <p className="text-[32px] leading-[1.5] font-medium text-[#BA1640]">
+                        NAILS{selectedPrize.percentage}OFF
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleClaimReward}
+                    className="rounded-[16px] bg-[#F5A3B7] border border-[#A3A3A3] px-[48px] py-[16px] text-[16px] leading-[1.5] font-medium text-black text-center"
+                  >
+                    CLAIM REWARD - ENTER YOUR DETAILS
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="relative z-10 w-full max-w-[575px]">
+              <WinnerForm
+                prize={selectedPrize}
+                onSubmit={handleFormSubmit}
+                onClose={() => {
+                  setShowForm(false);
+                  setSelectedPrize(null);
+                }}
+                loading={submitting}
+              />
+            </div>
+          )}
+        </div>
+      )}
     </main>
   );
 }
