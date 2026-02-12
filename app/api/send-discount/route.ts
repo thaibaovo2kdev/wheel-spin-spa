@@ -1,15 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// In-memory store for emails that have already claimed discounts
+// In production, this should be a database
+const claimedEmails = new Set<string>();
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, dob, prizeId, discount, percentage } = body;
+    const { name, email, prizeId, discount, percentage } = body;
+    // dob is optional now
+    const dob = body.dob || '';
 
-    // Validate input
-    if (!name || !email || !dob || !prizeId) {
+    // Validate required fields (name, email, prizeId)
+    if (!name || !email || !prizeId) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
+      );
+    }
+
+    // Check for duplicate email
+    const normalizedEmail = email.trim().toLowerCase();
+    if (claimedEmails.has(normalizedEmail)) {
+      return NextResponse.json(
+        { error: 'This email has already been used to claim a discount code.' },
+        { status: 409 }
       );
     }
 
@@ -27,10 +42,8 @@ export async function POST(request: NextRequest) {
       `Email: You have won ${discount} off! Use code: ${discountCode}`
     );
 
-    // In a real application, you would:
-    // 1. Send email via SendGrid, Resend, etc.
-    // 2. Store user data in database
-    // 3. Track discount usage
+    // Mark email as claimed
+    claimedEmails.add(normalizedEmail);
 
     // Mock delay to simulate email sending
     await new Promise((resolve) => setTimeout(resolve, 500));

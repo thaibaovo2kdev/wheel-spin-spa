@@ -16,7 +16,6 @@ interface Prize {
 export default function Home() {
   const [prizes, setPrizes] = useState<Prize[]>([]);
   const [selectedPrize, setSelectedPrize] = useState<Prize | null>(null);
-  const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -102,7 +101,6 @@ export default function Home() {
 
   const handleSpinComplete = (prize: Prize) => {
     setSelectedPrize(prize);
-    setShowForm(false);
   };
 
   const handleFormSubmit = async (data: {
@@ -118,9 +116,6 @@ export default function Home() {
     }, 1000);
   };
 
-  const handleClaimReward = () => {
-    setShowForm(true);
-  };
 
   if (loading) {
     return (
@@ -195,7 +190,7 @@ export default function Home() {
           <LuckyWheel
             prizes={prizes}
             onSpinComplete={handleSpinComplete}
-            disabled={showForm || !!selectedPrize}
+            disabled={!!selectedPrize}
           />
         </div>
       </section>
@@ -210,7 +205,7 @@ export default function Home() {
         </p>
       </footer>
 
-      {/* Popup overlay (Figma node 1:107 / 1:134) */}
+      {/* Popup overlay */}
       {selectedPrize && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60" />
@@ -218,98 +213,16 @@ export default function Home() {
             <Fireworks />
           </div>
 
-          {!showForm ? (
-            <div
-              className="relative z-10 w-full max-w-[736px] h-[550px] rounded-[24px] overflow-hidden"
-              style={{ fontFamily: 'var(--font-clash)' }}
-            >
-              <div className="absolute inset-0 bg-[#BA1640]" />
-              <Image
-                src="/figma/congrats-bg.png"
-                alt=""
-                fill
-                className="object-cover"
-                priority
-              />
-
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedPrize(null)
-                  setShowForm(false)
-                }}
-                className="absolute right-0 top-0 p-[24px]"
-                aria-label="Close"
-              >
-                <Image
-                  src="/figma/close.svg"
-                  alt=""
-                  width={24}
-                  height={24}
-                  className="h-[24px] w-[24px]"
-                />
-              </button>
-
-              <div className="absolute left-1/2 top-[32px] -translate-x-1/2 w-[404px] flex flex-col items-center gap-[48px]">
-                <Image
-                  src="/figma/logo-black.png"
-                  alt="Beautique"
-                  width={200}
-                  height={97}
-                  className="h-[97px] w-[200px]"
-                  priority
-                />
-
-                <div className="w-full flex flex-col items-center gap-[32px]">
-                  <div className="w-[325px] flex flex-col items-center gap-[24px]">
-                    <div className="text-center text-[#BA1640] space-y-2">
-                      <p
-                        className="text-[48px] leading-[1.2]"
-                        style={{ fontFamily: 'var(--font-branch)' }}
-                      >
-                        Congratulations!
-                      </p>
-                      <p className="text-[32px] leading-[1.2] text-black">
-                        You won{' '}
-                        <span className="text-[#BA1640] font-medium">
-                          {selectedPrize.discount}
-                        </span>
-                      </p>
-                    </div>
-
-                    <div className="w-[286px] h-[114px] rounded-[16px] border border-black px-[48px] py-[16px] flex flex-col items-center justify-center gap-[10px]">
-                      <p className="text-[16px] leading-[1.5] text-black">
-                        YOUR DISCOUNT CODE
-                      </p>
-                      <p className="text-[32px] leading-[1.5] font-medium text-[#BA1640]">
-                        NAILS{selectedPrize.percentage}OFF
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleClaimReward}
-                    className="rounded-[16px] bg-[#F5A3B7] border border-[#A3A3A3] px-[48px] py-[16px] text-[16px] leading-[1.5] font-medium text-black text-center"
-                  >
-                    CLAIM REWARD - ENTER YOUR DETAILS
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="relative z-10 w-full max-w-[575px]">
-              <WinnerForm
-                prize={selectedPrize}
-                onSubmit={handleFormSubmit}
-                onClose={() => {
-                  setShowForm(false);
-                  setSelectedPrize(null);
-                }}
-                loading={submitting}
-              />
-            </div>
-          )}
+          <div className="relative z-10 w-full max-w-[640px]">
+            <WinnerForm
+              prize={selectedPrize}
+              onSubmit={handleFormSubmit}
+              onClose={() => {
+                setSelectedPrize(null);
+              }}
+              loading={submitting}
+            />
+          </div>
         </div>
       )}
     </main>

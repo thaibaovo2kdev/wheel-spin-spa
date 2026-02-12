@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react'
+import Image from 'next/image'
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 
 interface Prize {
   id: string;
@@ -31,22 +32,26 @@ export default function WinnerForm({
   });
 
   const [submitted, setSubmitted] = useState(false)
+  const [agreePromo, setAgreePromo] = useState(false)
+  const [agreePrivacy, setAgreePrivacy] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
 
-  const headlineParts = useMemo(() => {
-    const wonText = 'You won'
-    const prizeText = prize.discount || `${prize.percentage}% OFF`
-    return { wonText, prizeText }
-  }, [prize.discount, prize.percentage])
+  const canSubmit = formData.name && formData.email && agreePromo && agreePrivacy && !loading
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage('');
 
-    if (!formData.name || !formData.email || !formData.dob) {
-      alert('Please fill in all fields');
+    if (!formData.name || !formData.email) {
+      setErrorMessage('Please fill in Name and Email.');
       return;
     }
 
-    // Submit to API
+    if (!agreePromo || !agreePrivacy) {
+      setErrorMessage('Please agree to both checkboxes before submitting.');
+      return;
+    }
+
     try {
       const response = await fetch('/api/send-discount', {
         method: 'POST',
@@ -62,11 +67,14 @@ export default function WinnerForm({
       if (response.ok) {
         setSubmitted(true)
         onSubmit(formData)
+      } else if (response.status === 409) {
+        const data = await response.json();
+        setErrorMessage(data.error || 'This email has already been used to claim a discount.');
       } else {
-        alert('Failed to send discount. Please try again.');
+        setErrorMessage('Failed to send discount. Please try again.');
       }
     } catch (error) {
-      alert('Error submitting form. Please try again.');
+      setErrorMessage('Error submitting form. Please try again.');
       console.error(error);
     }
   };
@@ -74,27 +82,51 @@ export default function WinnerForm({
   if (submitted) {
     return (
       <div
-        className="relative bg-white rounded-[24px] p-[48px] w-full max-w-[575px]"
+        className="relative w-full max-w-[640px] rounded-[24px] overflow-hidden"
         style={{ fontFamily: 'var(--font-clash)' }}
       >
+        {/* Background */}
+        <div className="absolute inset-0">
+          <Image
+            src="/figma/congrats-bg.png"
+            alt=""
+            fill
+            className="object-cover"
+            priority
+          />
+        </div>
+
+        {/* Close button */}
         {onClose && (
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors text-gray-600 hover:text-black"
+            className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/10 hover:bg-black/20 transition-colors text-gray-700 hover:text-black"
             aria-label="Close"
           >
             ✕
           </button>
         )}
-        <div className="text-center space-y-4">
-          <p className="text-[20px] leading-[1.5] text-black">
-            Mã giảm giá đã được gửi tới <span className="font-medium">{formData.email}</span>.
-          </p>
+
+        {/* Content */}
+        <div className="relative z-[5] flex flex-col items-center px-[40px] py-[48px]">
+          <Image
+            src="/figma/Beautique4-01.png"
+            alt="Beautique"
+            width={180}
+            height={87}
+            className="h-[87px] w-[180px] object-contain"
+            priority
+          />
+          <div className="mt-[24px] text-center space-y-2">
+            <p className="text-[20px] leading-[1.5] text-black">
+              Mã giảm giá đã được gửi tới <span className="font-medium">{formData.email}</span>.
+            </p>
+          </div>
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="rounded-[16px] bg-[#F5A3B7] px-[48px] py-[16px] text-[16px] leading-[1.5] font-medium text-black"
+            className="mt-[24px] rounded-[16px] bg-[#F5A3B7] px-[48px] py-[16px] text-[16px] leading-[1.5] font-medium text-black"
           >
             QUAY LẠI
           </button>
@@ -105,90 +137,170 @@ export default function WinnerForm({
 
   return (
     <div
-      className="relative bg-white rounded-[24px] p-[48px] w-full max-w-[575px]"
+      className="relative w-full max-w-[640px] rounded-[24px] overflow-hidden"
       style={{ fontFamily: 'var(--font-clash)' }}
     >
+      {/* Background image — original colors */}
+      <div className="absolute inset-0">
+        <Image
+          src="/figma/congrats-bg.png"
+          alt=""
+          fill
+          className="object-cover"
+          priority
+        />
+      </div>
+
+      {/* Close button */}
       {onClose && (
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors text-gray-600 hover:text-black"
+          className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/10 hover:bg-black/20 transition-colors text-gray-700 hover:text-black"
           aria-label="Close"
         >
           ✕
         </button>
       )}
-      <div className="w-full text-center space-y-4">
-        <p className="text-[32px] leading-[1.2] text-black">
-          {headlineParts.wonText}{' '}
-          <span className="text-[#FFA12F]">{headlineParts.prizeText}</span>
-        </p>
-        <p className="text-[16px] leading-[1.5] text-black">
-          Enter your details below to receive your discount code via email.
-        </p>
-      </div>
 
-      <div className="mt-[48px] flex flex-col items-center gap-[32px]">
+      {/* Content */}
+      <div className="relative z-[5] flex flex-col items-center px-[40px] py-[40px] md:px-[60px]">
+        {/* Logo */}
+        <Image
+          src="/figma/Beautique4-01.png"
+          alt="Beautique"
+          width={360}
+          height={120}
+          className="h-[120px] w-[360px] object-contain"
+          priority
+        />
+
+        {/* Congrats headline */}
+        <div className="mt-[20px] text-center">
+          <p
+            className="text-[#BA1640] text-[32px] md:text-[40px] leading-[1.2]"
+            style={{ fontFamily: 'var(--font-branch)' }}
+          >
+            Congratulations, you&apos;ve won
+          </p>
+        </div>
+
+        {/* Prize box */}
+        <div className="mt-[16px] w-full max-w-[400px] rounded-[12px] border border-black/20 bg-white/60 px-[24px] py-[14px] flex items-center justify-center">
+          <p className="text-[#BA1640] text-[28px] md:text-[36px] leading-[1.3] font-medium text-center">
+            {prize.discount}
+          </p>
+        </div>
+
+        {/* Instruction */}
+        <p className="mt-[20px] text-[14px] leading-[1.5] text-black/80 text-center">
+          Please enter your information to receive the promo code
+        </p>
+
+        {/* Form */}
         <form
           onSubmit={handleSubmit}
-          className="w-full max-w-[479px] space-y-[32px]"
+          className="mt-[16px] w-full space-y-[14px]"
         >
-          <div className="space-y-[16px]">
-            <label className="block text-[16px] leading-[1.5] text-black">
-              Full Name
-            </label>
-            <input
-              type="text"
-              placeholder="John Doe"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full rounded-[16px] border border-[#A3A3A3] bg-white px-[24px] py-[16px] text-[16px] leading-[1.5] text-black placeholder:text-[#A3A3A3] focus:outline-none focus:ring-2 focus:ring-black/10"
-              disabled={loading}
-            />
+          {/* Name + DOB row */}
+          <div className="flex gap-[16px]">
+            <div className="flex-1 space-y-[4px]">
+              <label className="block text-[13px] leading-[1.4] text-black">
+                Name<span className="text-[#BA1640]">*</span>:
+              </label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full rounded-[8px] border border-[#c0c0c0] bg-white px-[12px] py-[10px] text-[14px] leading-[1.4] text-black placeholder:text-[#A3A3A3] focus:outline-none focus:ring-2 focus:ring-black/10"
+                disabled={loading}
+                required
+              />
+            </div>
+            <div className="w-[140px] space-y-[4px]">
+              <label className="block text-[13px] leading-[1.4] text-black">
+                D.O.B
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="mm/dd/yy"
+                value={formData.dob}
+                onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+                className="w-full rounded-[8px] border border-[#c0c0c0] bg-white px-[12px] py-[10px] text-[14px] leading-[1.4] text-black placeholder:text-[#A3A3A3] focus:outline-none focus:ring-2 focus:ring-black/10"
+                disabled={loading}
+              />
+            </div>
           </div>
 
-          <div className="space-y-[16px]">
-            <label className="block text-[16px] leading-[1.5] text-black">
-              Email
+          {/* Email */}
+          <div className="space-y-[4px]">
+            <label className="block text-[13px] leading-[1.4] text-black">
+              Email<span className="text-[#BA1640]">*</span>:
             </label>
             <input
               type="email"
-              placeholder="johndoe@example.com"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full rounded-[16px] border border-[#A3A3A3] bg-white px-[24px] py-[16px] text-[16px] leading-[1.5] text-black placeholder:text-[#A3A3A3] focus:outline-none focus:ring-2 focus:ring-black/10"
+              className="w-full rounded-[8px] border border-[#c0c0c0] bg-white px-[12px] py-[10px] text-[14px] leading-[1.4] text-black placeholder:text-[#A3A3A3] focus:outline-none focus:ring-2 focus:ring-black/10"
               disabled={loading}
+              required
             />
           </div>
 
-          <div className="space-y-[16px]">
-            <label className="block text-[16px] leading-[1.5] text-black">
-              Date of Birth
+          {/* Checkboxes */}
+          <div className="space-y-[8px] pt-[4px]">
+            <label className="flex items-start gap-[8px] cursor-pointer text-[12px] leading-[1.5] text-black">
+              <input
+                type="checkbox"
+                checked={agreePromo}
+                onChange={(e) => setAgreePromo(e.target.checked)}
+                className="mt-[2px] h-[14px] w-[14px] accent-[#BA1640] shrink-0"
+                disabled={loading}
+              />
+              <span>
+                By checking this box, I agree to receive general emails and product offers from Beautique nails &amp; spa
+              </span>
             </label>
-            <input
-              type="text"
-              inputMode="numeric"
-              placeholder="mm/dd/yy"
-              value={formData.dob}
-              onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-              className="w-full rounded-[16px] border border-[#A3A3A3] bg-white px-[24px] py-[16px] text-[16px] leading-[1.5] text-black placeholder:text-[#A3A3A3] focus:outline-none focus:ring-2 focus:ring-black/10"
-              disabled={loading}
-            />
+
+            <label className="flex items-start gap-[8px] cursor-pointer text-[12px] leading-[1.5] text-black">
+              <input
+                type="checkbox"
+                checked={agreePrivacy}
+                onChange={(e) => setAgreePrivacy(e.target.checked)}
+                className="mt-[2px] h-[14px] w-[14px] accent-[#BA1640] shrink-0"
+                disabled={loading}
+              />
+              <span>
+                I have reviewed and agree to Beautique nails &amp; spa&apos;s{' '}
+                <a
+                  href="/policy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#BA1640] underline hover:text-[#8a1030] transition-colors"
+                >
+                  Privacy Policy
+                </a>
+              </span>
+            </label>
           </div>
 
-          <p className="text-center text-[16px] leading-[1.5] text-[#BA1640]">
-            Your information is secure and will only
-            <br />
-            be used to send your discount code.
-          </p>
+          {errorMessage && (
+            <p className="text-center text-[12px] leading-[1.5] text-red-600">
+              {errorMessage}
+            </p>
+          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-[16px] bg-[#F5A3B7] px-[48px] py-[16px] text-[16px] leading-[1.5] font-medium text-black disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'SENDING...' : 'CLAIM YOUR DISCOUNT CODE'}
-          </button>
+          {/* Submit */}
+          <div className="flex justify-center pt-[8px]">
+            <button
+              type="submit"
+              disabled={!canSubmit}
+              className="rounded-[12px] bg-[#F5A3B7] border border-[#c0c0c0] px-[60px] py-[12px] text-[16px] leading-[1.5] font-medium text-black disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#f291a8] transition-colors"
+            >
+              {loading ? 'Sending...' : 'Get Reward'}
+            </button>
+          </div>
         </form>
       </div>
     </div>
